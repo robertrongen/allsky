@@ -19,6 +19,7 @@
 #include <sys/wait.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <fstream>
 
 #include "include/allsky_common.h"
 
@@ -264,6 +265,17 @@ void add_variables_to_command(config cg, char *cmd, timeval startDateTime)
 		strcat(cmd, tmp);
 	}
 
+	// Function to write the camera temperature to a file
+	void writeTemperatureToFile(double temperature) {
+		std::ofstream tempFile("cameratemp");
+		if (tempFile.is_open()) {
+			tempFile << temperature;
+			tempFile.close();
+		} else {
+			Log(0, "ERROR: Unable to open temperature file for writing.\n");
+		}
+	}
+
 	// Since negative temperatures are valid, check against an impossible temperature.
 	// The temperature passed to us is 10 times the actual temperature so we can deal with
 	// integers with 1 decimal place, which is all we care about.
@@ -272,6 +284,9 @@ void add_variables_to_command(config cg, char *cmd, timeval startDateTime)
 		strcat(cmd, tmp);
 		snprintf(tmp, s, " TEMPERATURE_F=%d", (int)round((cg.lastSensorTemp * 1.8) +32));
 		strcat(cmd, tmp);
+
+	// Write the temperature to a file
+    writeTemperatureToFile(cg.lastSensorTemp);
 	}
 
 
